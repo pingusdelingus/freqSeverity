@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wallet Insurance Actuarial Model</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        :root {
+            --ctp-base: #1e1e2e;
+            --ctp-surface0: #313244;
+            --ctp-surface1: #45475a;
+            --ctp-surface2: #585b70;
+            --ctp-overlay0: #6c7086;
+            --ctp-overlay1: #7f849c;
+            --ctp-overlay2: #9399b2;
+            --ctp-subtext0: #a6adc8;
+            --ctp-subtext1: #bac2de;
+            --ctp-text: #cdd6f4;
+            --ctp-lavender: #b4befe;
+            --ctp-blue: #89b4fa;
+            --ctp-sapphire: #74c7ec;
+            --ctp-sky: #89dceb;
+            --ctp-teal: #94e2d5;
+            --ctp-green: #a6e3a1;
+            --ctp-yellow: #f9e2af;
+            --ctp-peach: #fab387;
+            --ctp-maroon: #eba0ac;
+            --ctp-red: #f38ba8;
+            --ctp-mauve: #cba6f7;
+            --ctp-pink: #f5c2e7;
+            --ctp-rosewater: #f5e0dc;
+        }
+
+        body {
+            background-color: var(--ctp-base);
+            color: var(--ctp-text);
+            padding: 20px;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        .card {
+            background-color: var(--ctp-surface0);
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-title {
+            color: var(--ctp-lavender);
+            font-weight: 600;
+        }
+
+        .form-control, .form-select {
+            background-color: var(--ctp-surface1);
+            border: 1px solid var(--ctp-surface2);
+            color: var(--ctp-text);
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .form-control:focus, .form-select:focus {
+            background-color: var(--ctp-surface1);
+            border-color: var(--ctp-blue);
+            color: var(--ctp-text);
+            box-shadow: 0 0 0 0.25rem rgba(137, 180, 250, 0.25);
+        }
+
+        .form-label {
+            color: var(--ctp-subtext1);
+            font-weight: 500;
+        }
+
+        .btn-primary {
+            background-color: var(--ctp-blue);
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-weight: 600;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--ctp-sapphire);
+            transform: translateY(-2px);
+        }
+
+        .stats-card {
+            background-color: var(--ctp-surface1);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .stats-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--ctp-lavender);
+        }
+
+        .text-lavender {
+            color: var(--ctp-lavender);
+        }
+
+        .bg-surface1 {
+            background-color: var(--ctp-surface1);
+        }
+
+        .btn-link {
+            color: var(--ctp-lavender);
+        }
+
+        .btn-link:hover {
+            color: var(--ctp-blue);
+        }
+
+        .collapse .card {
+            margin-bottom: 0;
+        }
+
+        .collapse .card-body {
+            padding: 1rem;
+        }
+
+        .collapse ul {
+            margin-bottom: 0;
+            padding-left: 1.5rem;
+        }
+
+        .collapse li {
+            margin-bottom: 0.5rem;
+        }
+
+        h1 {
+            color: var(--ctp-lavender);
+            font-weight: 700;
+            margin-bottom: 2rem;
+        }
+
+        #plot {
+            background-color: var(--ctp-surface0);
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .simulation-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background-color: var(--ctp-mauve);
+            color: var(--ctp-base);
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease-in-out;
+            z-index: 1000;
+        }
+
+        .simulation-button:hover {
+            transform: scale(1.1);
+            background-color: var(--ctp-pink);
+        }
+
+        .simulation-button i {
+            color: var(--ctp-base);
+        }
+    </style>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mb-4">Wallet Insurance Actuarial Model</h1>
+        
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Simulation Parameters</h5>
+                        <div class="mb-3">
+                            <button class="btn btn-link text-decoration-none p-0" type="button" data-bs-toggle="collapse" data-bs-target="#modelAssumptions" aria-expanded="false" aria-controls="modelAssumptions">
+                                <i class="fas fa-info-circle"></i> Model Assumptions
+                            </button>
+                            <div class="collapse mt-2" id="modelAssumptions">
+                                <div class="card card-body bg-surface1">
+                                    <h6 class="text-lavender">Frequency Model Assumptions:</h6>
+                                    <ul class="mb-3">
+                                        <li>Number of hacks follows a Poisson distribution</li>
+                                        <li>Hacks occur independently over time</li>
+                                        <li>Average number of hacks per day (λ) is constant</li>
+                                        <li>Probability of multiple hacks in a short time period is negligible</li>
+                                    </ul>
+                                    <h6 class="text-lavender">Severity Model Assumptions:</h6>
+                                    <ul class="mb-3">
+                                        <li>Loss amounts follow a lognormal distribution</li>
+                                        <li>Losses are independent of frequency</li>
+                                        <li>Individual losses are capped at portfolio value</li>
+                                        <li>Losses are non-negative</li>
+                                    </ul>
+                                    <h6 class="text-lavender">Stochastic Model Additional Assumptions:</h6>
+                                    <ul>
+                                        <li>Hack intensity varies over time (Cox process)</li>
+                                        <li>Loss severity has time-dependent scaling</li>
+                                        <li>Random shocks affect both frequency and severity</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <form id="simulationForm">
+                            <div class="mb-3">
+                                <label class="form-label">Model Type</label>
+                                <select class="form-select" id="modelType">
+                                    <option value="poisson">Poisson Model</option>
+                                    <option value="stochastic">Stochastic Model</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Lambda Rate (hacks/day)</label>
+                                <input type="number" class="form-control" id="lambdaRate" value="0.1" step="0.01">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    Mean Log Loss (μ)
+                                    <i class="fas fa-info-circle" data-bs-toggle="tooltip" data-bs-placement="right" 
+                                       title="The mean of the natural logarithm of losses. Higher values indicate larger expected losses. For example, μ=10 means the median loss is about $22,026 (e^10)."></i>
+                                </label>
+                                <input type="number" class="form-control" id="mu" value="10" step="0.1">
+                                <small class="text-muted">Controls the central tendency of loss amounts</small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    Sigma (σ)
+                                    <i class="fas fa-info-circle" data-bs-toggle="tooltip" data-bs-placement="right" 
+                                       title="The standard deviation of the natural logarithm of losses. Higher values indicate more variability in loss amounts. For example, σ=0.5 means losses can vary by about ±50% from the median."></i>
+                                </label>
+                                <input type="number" class="form-control" id="sigma" value="0.5" step="0.1">
+                                <small class="text-muted">Controls the spread/variability of loss amounts</small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Time Period (days)</label>
+                                <input type="number" class="form-control" id="T" value="30">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Number of Simulations</label>
+                                <input type="number" class="form-control" id="numSimulations" value="10000">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Initial Portfolio Value ($)</label>
+                                <div class="input-group mb-2">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" id="portfolioValueInput" value="100000" min="1000" max="1000000" step="1000">
+                                </div>
+                                <input type="range" class="form-range" id="portfolioValue" min="1000" max="1000000" step="1000" value="100000">
+                                <div class="d-flex justify-content-between">
+                                    <small class="text-muted">$1,000</small>
+                                    <small class="text-muted" id="portfolioValueDisplay">$100,000</small>
+                                    <small class="text-muted">$1,000,000</small>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Run Simulation</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Simulation Results</h5>
+                        <div id="plot"></div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="stats-card">
+                            <h6>Expected Loss</h6>
+                            <div class="stat-value" id="meanLoss">-</div>
+                            <small class="text-muted">Average potential loss over the time period</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stats-card">
+                            <h6>95% VaR</h6>
+                            <div class="stat-value" id="var95">-</div>
+                            <small class="text-muted">Maximum loss at 95% confidence level (Value at Risk)</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stats-card">
+                            <h6>95% CVaR</h6>
+                            <div class="stat-value" id="cvar95">-</div>
+                            <small class="text-muted">Average loss beyond VaR (Conditional Value at Risk)</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button class="simulation-button" id="runSimulation">
+        <i class="fas fa-play"></i>
+    </button>
+
+    <script>
+        $(document).ready(function() {
+            // Initialize tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            });
+
+            // Portfolio value slider and input interaction
+            function updatePortfolioValue(value) {
+                value = Math.max(1000, Math.min(1000000, value));
+                $('#portfolioValue').val(value);
+                $('#portfolioValueInput').val(value);
+                $('#portfolioValueDisplay').text('$' + parseInt(value).toLocaleString());
+            }
+
+            $('#portfolioValue').on('input', function() {
+                updatePortfolioValue($(this).val());
+            });
+
+            $('#portfolioValueInput').on('input', function() {
+                updatePortfolioValue($(this).val());
+            });
+
+            function runSimulation() {
+                const data = {
+                    model_type: $('#modelType').val(),
+                    lambda_rate: parseFloat($('#lambdaRate').val()),
+                    mu: parseFloat($('#mu').val()),
+                    sigma: parseFloat($('#sigma').val()),
+                    T: parseInt($('#T').val()),
+                    num_simulations: parseInt($('#numSimulations').val()),
+                    portfolio_value: parseInt($('#portfolioValueInput').val())
+                };
+                
+                // Add loading animation to button
+                const button = $('#runSimulation');
+                button.html('<i class="fas fa-spinner fa-spin"></i>');
+                
+                $.ajax({
+                    url: '/run_simulation',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(data),
+                    success: function(response) {
+                        const plotData = JSON.parse(response.plot);
+                        Plotly.newPlot('plot', plotData.data, plotData.layout);
+                        
+                        // Format numbers with commas and dollar sign
+                        $('#meanLoss').text('$' + response.stats.mean_loss.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+                        $('#var95').text('$' + response.stats.var_95.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+                        $('#cvar95').text('$' + response.stats.cvar_95.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+                        
+                        // Reset button
+                        button.html('<i class="fas fa-play"></i>');
+                    },
+                    error: function(xhr, status, error) {
+                        alert('Error running simulation: ' + error);
+                        // Reset button
+                        button.html('<i class="fas fa-play"></i>');
+                    }
+                });
+            }
+
+            // Run simulation on form submit
+            $('#simulationForm').on('submit', function(e) {
+                e.preventDefault();
+                runSimulation();
+            });
+
+            // Run simulation on button click
+            $('#runSimulation').on('click', function() {
+                runSimulation();
+            });
+        });
+    </script>
+</body>
+</html> 
